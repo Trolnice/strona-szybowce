@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wirtualna Szkoła Pilotażu "Awionetka"</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #D7D2CB;
+            --bg-container: #F5F5F5;
+            --bg-header: #28313B;
+            --bg-module: #EAEAEA;
+            --bg-ai: #D7D2CB;
+            --text-light: #EAEAEA;
+            --text-dark: #1a202c;
+            --text-muted: #5A6470;
+            --border-color: #B0B8C2;
+            --accent-green: #5A8B48;
+            --accent-green-hover: #4A733A;
+            --accent-blue: #3E6D8E;
+            --accent-blue-hover: #30556E;
+            --accent-red: #c53030;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 20px;
+            background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+        }
+
+        .cockpit-container {
+            max-width: 1200px;
+            margin: auto;
+            background-color: var(--bg-container);
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(0,0,0,0.2);
+            border: 4px solid #333;
+            border-style: outset;
+            overflow: hidden;
+        }
+
+        header {
+            background: var(--bg-header);
+            color: var(--text-light);
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            border-bottom: 4px solid #1a202c;
+            background-image: url('https://www.transparenttextures.com/patterns/worn-dots.png');
+        }
+
+        header h1 { font-family: 'Roboto Mono', monospace; margin: 0; font-size: 2.2em; text-shadow: 1px 1px 2px rgba(0,0,0,0.7); }
+        header p { margin: 5px 0 0; font-style: italic; color: #a0aec0; }
+
+        .main-content { padding: 25px; display: grid; grid-template-columns: 1fr 2fr; gap: 25px; }
+        .pilot-log, .main-modules { background-color: var(--bg-module); padding: 20px; border-radius: 4px; border: 1px solid var(--border-color); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+        h2, h3 { font-family: 'Roboto Mono', monospace; color: var(--text-dark); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-top: 0; }
+        h4 { font-family: 'Roboto Mono', monospace; margin-bottom: 10px; margin-top: 20px; }
+
+        .progress-bar { background-color: #C7C7C7; border-radius: 5px; overflow: hidden; height: 20px; border: 1px solid #999; box-shadow: inset 0 1px 2px rgba(0,0,0,0.2); }
+        .progress-bar div { background: linear-gradient(to bottom, var(--accent-green), var(--accent-green-hover)); color: white; text-align: center; line-height: 20px; font-weight: bold; font-size: 0.8em; transition: width 0.5s ease-in-out; }
+
+        .ai-instructor { background-color: var(--bg-ai); border: 1px solid var(--border-color); padding: 15px; margin-top: 20px; border-radius: 4px; }
+        .ai-instructor p { margin-top: 0; }
+
+        .button, .button-secondary { display: inline-block; background: linear-gradient(to bottom, var(--accent-blue), var(--accent-blue-hover)); color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; transition: all 0.3s; cursor: pointer; border: 1px solid #2A4D62; border-top-color: #5F89A5; box-shadow: 0 2px 3px rgba(0,0,0,0.2); text-shadow: 0 -1px 0 rgba(0,0,0,0.3); }
+        .button:hover:not(:disabled) { background: var(--accent-blue-hover); transform: translateY(-1px); box-shadow: 0 3px 5px rgba(0,0,0,0.2); }
+        .button-secondary { background: linear-gradient(to bottom, var(--text-muted), #4a5568); border-color: #333; border-top-color: #888; }
+        .button-secondary:hover:not(:disabled) { background: #4a5568; }
+        .button:disabled, .button-secondary:disabled { background: #a0aec0; cursor: not-allowed; box-shadow: none; }
+        
+        #library-button { background: linear-gradient(to bottom, var(--accent-green), var(--accent-green-hover)); border-color: #3A632A; border-top-color: #7AB564; width: 100%; padding: 15px; font-size: 1.2em; margin-bottom: 20px; }
+
+        .module { background-color: white; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 15px; padding: 15px; transition: box-shadow 0.3s, border-color 0.3s; }
+        .module:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .module.completed { border-left: 5px solid var(--accent-green); padding-left: 11px; }
+        .module-header { display: flex; justify-content: space-between; align-items: center; }
+        .module-status { font-weight: bold; font-size: 0.9em; }
+        .status-done { color: var(--accent-green); }
+        
+        .sub-test-list { margin-top: 10px; }
+        .sub-test { margin-left: 20px; padding: 5px 0; color: #4a5568; }
+        .sub-test::before { content: '↳ '; }
+        .sub-test-link { color: var(--accent-blue); text-decoration: none; font-weight: 600; cursor: pointer; }
+        .sub-test-link:hover { text-decoration: underline; }
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
+        .modal-content { background-color: var(--bg-container); margin: 3% auto; padding: 25px; border: 1px solid #888; width: 90%; max-width: 900px; border-radius: 8px; animation: fadeIn 0.5s; }
+        .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close-button:hover, .close-button:focus { color: black; }
+        @keyframes fadeIn { from {opacity: 0; transform: translateY(-20px);} to {opacity: 1; transform: translateY(0);} }
+        
+        .flashcard-container { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; perspective: 1000px; margin-top: 20px; }
+        .flashcard { width: 220px; height: 150px; cursor: pointer; position: relative; }
+        .flashcard-inner { position: absolute; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+        .flashcard.is-flipped .flashcard-inner { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; text-align: center; padding: 15px; border-radius: 8px; border: 2px solid var(--border-color); }
+        .flashcard-front { background-color: white; font-weight: bold; }
+        .flashcard-back { background-color: var(--bg-ai); transform: rotateY(180deg); font-size: 0.9em; }
+
+        .modal-options { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .modal-options .option { padding: 15px; border: 2px solid var(--border-color); border-radius: 5px; cursor: pointer; transition: all 0.2s; }
+        .modal-options .option:hover { background-color: #e2e8f0; border-color: var(--accent-blue); }
+        #modal-feedback { margin-top: 20px; padding: 15px; border-radius: 5px; display: none; animation: fadeIn 0.5s; }
+        .feedback-correct { background-color: #d4edda; border-left: 5px solid var(--accent-green); }
+        .feedback-incorrect { background-color: #f8d7da; border-left: 5px solid var(--accent-red); }
+        
+        .library-section { margin-bottom: 25px; }
+        .library-section h3 { border-bottom: 2px solid var(--accent-blue); }
+        .library-item { margin-bottom: 15px; }
+        .library-item dt { font-weight: 700; color: var(--text-dark); }
+        .library-item dd { margin-left: 20px; color: var(--text-muted); }
+
+        #plane-animation {
+            position: fixed;
+            top: 20%;
+            left: -300px; /* Start off-screen */
+            width: 300px;
+            height: auto;
+            z-index: 2000;
+            pointer-events: none;
+            display: none;
+        }
+        #plane-animation.fly {
+            display: block;
+            animation: fly-in-out 4s ease-in-out forwards;
+        }
+        @keyframes fly-in-out {
+            0% { left: -300px; }
+            40% { left: 50%; transform: translateX(-50%) scale(1.1); }
+            60% { left: 50%; transform: translateX(-50%) scale(1.1); }
+            100% { left: 110%; }
+        }
+        #plane-animation svg { width: 150px; display: block; filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4)); }
+        #plane-animation .banner {
+            background-color: #fff;
+            border: 2px solid #333;
+            padding: 10px 20px;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 1.5em;
+            font-weight: bold;
+            white-space: nowrap;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            transform: rotate(-5deg);
+        }
+
+        @media (max-width: 900px) { .main-content { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div id="app-container" class="cockpit-container">
+        <header>
+            <h1>Wirtualna Szkoła Pilotażu "Awionetka"</h1>
+            <p id="header-subtitle">Witaj w kokpicie, Pilocie-Uczniu!</p>
+        </header>
+
+        <main class="main-content">
+            <aside class="pilot-log">
+                <h2>TWÓJ DZIENNIK PILOTA</h2>
+                <h3>PROFIL I POSTĘPY</h3>
+                <label for="progress">Ukończone testy:</label>
+                <div class="progress-bar" id="progress">
+                    <div id="progress-bar-inner" style="width: 0%;">0%</div>
+                </div>
+                <div id="ai-instructor" class="ai-instructor"></div>
+            </aside>
+
+            <section id="main-modules-section" class="main-modules">
+                 <!-- Modules will be injected here by JS -->
+            </section>
+        </main>
+        
+        <footer>
+            <p>Pamiętaj, horyzont to nie limit, to tylko początek. Czystego nieba!</p>
+        </footer>
+    </div>
+
+    <div id="main-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <h2 id="modal-title">Tytuł Modułu</h2>
+            <div id="modal-body"></div>
+            <div id="modal-feedback"></div>
+        </div>
+    </div>
+
+    <div id="plane-animation">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100">
+            <path d="M180,50 l-40,-10 l-20,-20 l-60,0 l-20,20 l-20,0 l10,10 l-10,10 l20,0 l20,20 l60,0 l20,-20 l40,10 z" fill="#EAEAEA" stroke="#333" stroke-width="2"/>
+            <path d="M120,50 l0,-20 l10,0 l10,20 z" fill="#3E6D8E" />
+        </svg>
+        <div class="banner">Ty sigmo!</div>
+    </div>
+
+<script>
+    // --- STATE MANAGEMENT ---
+    const userProgress = {
+        modules: {
+            module1: { id: 'module1', name: 'Wiadomości ogólne', subtests: ['wymagania', 'historia'] },
+            module2: { id: 'module2', name: 'Zasady lotu', subtests: ['aerodynamika', 'statecznosc', 'technika'] },
+            module3: { id: 'module3', name: 'Sprzęt i wyposażenie', subtests: ['budowa', 'przyrzady', 'urzadzenia_startowe'] },
+            module4: { id: 'module4', name: 'Meteorologia', subtests: ['chmury', 'zjawiska', 'fronty'] }
+        },
+        subtestStatus: {}
+    };
+    let currentTestState = {
+        subtestId: null,
+        questions: [],
+        currentQuestionIndex: 0
+    };
+
+    // --- CONTENT DATABASE (EXPANDED) ---
+    const contentDB = {
+        wymagania: {
+            title: "Wymagania i Przebieg Szkolenia",
+            flashcards: [
+                { q: "Jaki jest minimalny wiek do rozpoczęcia szkolenia szybowcowego?", a: "Ukończone 16 lat. Wymagana jest zgoda rodziców dla osób niepełnoletnich." },
+                { q: "Jakie badanie jest kluczowe, aby zostać dopuszczonym do latania?", a: "Badanie lotniczo-lekarskie z orzeczeniem 'Zdolny do szkolenia szybowcowego'." },
+                { q: "Jak nazywa się pierwszy etap szkolenia praktycznego, często na uwięzionym szybowcu?", a: "Ćwiczenia na 'chwiejnicy' (zwanej potocznie 'szubienicą'), gdzie uczeń na ziemi uczy się reagować na wiatr." },
+                { q: "Jakie są 3 główne sposoby startu szybowca?", a: "Za pomocą wyciągarki, z lin gumowych (w terenie górzystym) oraz na holu za samolotem." }
+            ],
+            test: [
+                { q: 'Co jest głównym celem "szurów" i "skoków" na początku szkolenia?', options: ['Nauka nawigacji', 'Opanowanie startu za samolotem', 'Nauka utrzymywania równowagi i kierunku przy ziemi'], answer: 2, hint: 'Pomyśl o najbardziej podstawowych umiejętnościach, które pilot musi opanować, zanim w ogóle wzniesie się wyżej.', feedback: 'Szury i skoczki to krótkie loty tuż nad ziemią, które uczą podstawowej koordynacji ruchowej i reakcji na stery w bezpiecznych warunkach.' },
+                { q: 'Która kategoria pilota uprawnia do lotów samodzielnych w strefie nadlotniskowej?', options: ['Kategoria A', 'Kategoria B', 'Kategoria C'], answer: 2, hint: 'To ostatnia kategoria zdobywana w ramach szkolenia podstawowego.', feedback: 'Kategoria C (trzecia klasa wyszkolenia), często zdobywana na szybowcach treningowych, kończy etap szkolenia podstawowego.' }
+            ]
+        },
+        historia: {
+            title: "Historia Szybownictwa",
+            flashcards: [
+                { q: "Kto jest uznawany za 'ojca szybownictwa'?", a: "Otto Lilienthal (Niemcy)." },
+                { q: "Jak nazywał się polski pionier z szybowcem 'Lotnia'?", a: "Czesław Tański." },
+                { q: "Jaka miejscowość to 'kolebka polskiego szybownictwa'?", a: "Bezmiechowa." },
+                { q: "Jakie dwa polskie szybowce z lat 30. XX w. zdobyły międzynarodową popularność?", a: "Szkolna 'Wrona' i treningowy 'Komar', oba konstrukcji Antoniego Kocjana." }
+            ],
+            test: [
+                { q: 'Kto w 1938 roku otrzymał Medal Lilienthala za przelot 578,9 km?', options: ['Antoni Kocjan', 'Szczepan Grzeszczyk', 'Tadeusz Góra'], answer: 2, hint: 'Był to rekordowy przelot na szybowcu PWS-101.', feedback: 'Tadeusz Góra dokonał tego wybitnego przelotu na szybowcu PWS-101.' },
+                { q: 'Jaki polski powojenny szybowiec akrobacyjny powstał w Instytucie Szybownictwa?', options: ['Sęp', 'Mucha', 'Jastrząb'], answer: 2, hint: 'Jego nazwa nawiązuje do drapieżnego ptaka.', feedback: 'IS-4 "Jastrząb" był specjalistycznym szybowcem przeznaczonym do pełnej akrobacji.' }
+            ]
+        },
+        aerodynamika: {
+            title: "Aerodynamika",
+            flashcards: [
+                { q: "Co jest główną przyczyną siły nośnej wg prawa Bernoulliego?", a: "Różnica ciśnień (szybszy opływ na górze = niższe ciśnienie)." },
+                { q: "Czym jest doskonałość szybowca?", a: "Stosunkiem odległości do utraconej wysokości (L/H)." },
+                { q: "Co to jest kąt natarcia?", a: "Kąt między cięciwą skrzydła a kierunkiem napływu powietrza." },
+                { q: "Jak prędkość wpływa na opór aerodynamiczny?", a: "Opór jest proporcjonalny do kwadratu prędkości (wzrost prędkości 2x = wzrost oporu 4x)." }
+            ],
+            test: [
+                { q: 'Co stanie się z siłą nośną po przekroczeniu krytycznego kąta natarcia?', options: ['Wzrośnie', 'Bez zmian', 'Gwałtownie zmaleje (przeciągnięcie)'], answer: 2, hint: 'To zjawisko jest przyczyną większości korkociągów.', feedback: 'Następuje oderwanie strug i gwałtowna utrata siły nośnej.' },
+                { q: 'Jaki kształt w rzucie z góry ma skrzydło o najmniejszym oporze indukowanym?', options: ['Prostokątny', 'Trapezowy', 'Eliptyczny'], answer: 2, hint: 'Taki kształt miały skrzydła słynnego brytyjskiego myśliwca Spitfire.', feedback: 'Skrzydło o obrysie eliptycznym charakteryzuje się najkorzystniejszym rozkładem siły nośnej i najmniejszym oporem indukowanym.' }
+            ]
+        },
+        statecznosc: {
+            title: "Stateczność i Sterowność",
+            flashcards: [
+                { q: "Jaki element zapewnia stateczność podłużną?", a: "Statecznik poziomy." },
+                { q: "Co zapewnia stateczność boczną?", a: "Wznios skrzydeł." },
+                { q: "Jaką funkcję pełni statecznik pionowy?", a: "Zapewnia stateczność kierunkową." },
+                { q: "Co to jest wyważenie szybowca?", a: "Położenie środka ciężkości. Zbyt tylne wyważenie jest bardzo niebezpieczne." }
+            ],
+            test: [
+                { q: 'Pilot oddaje drążek od siebie. Jak zachowa się ster wysokości?', options: ['Wychyli się w dół', 'Wychyli się w górę', 'Pozostanie neutralny'], answer: 0, hint: 'Ruch drążka i steru wysokości są ze sobą powiązane w specyficzny sposób.', feedback: 'Oddanie drążka powoduje wychylenie steru wysokości w dół, co z kolei powoduje opuszczenie nosa szybowca.' },
+                { q: 'Dlaczego niebezpieczne jest wyważenie szybowca za bardzo do tyłu?', options: ['Szybowiec staje się zbyt powolny', 'Szybowiec traci stateczność podłużną i ma tendencję do samoczynnego zadzierania nosa', 'Zwiększa się opór aerodynamiczny'], answer: 1, hint: 'Pomyśl o tym, jak zachowuje się źle wyważona strzałka.', feedback: 'Tylne wyważenie zmniejsza lub likwiduje stateczność podłużną, co może prowadzić do wejścia w korkociąg, z którego trudno wyjść.' }
+            ]
+        },
+        technika: {
+            title: "Technika Pilotażu",
+            flashcards: [
+                { q: "Jak wyprowadzić szybowiec z korkociągu?", a: "Ster kierunku przeciwnie do obrotu, drążek 'od siebie'." },
+                { q: "Co oznacza kulka chyłomierza na zewnątrz zakrętu?", a: "Wyślizg (za mało 'nogi')." },
+                { q: "Dlaczego ląduje się pod wiatr?", a: "Aby zmniejszyć prędkość względem ziemi i skrócić dobieg." }
+            ],
+            test: [
+                { q: 'W zakręcie w lewo kulka ucieka w lewo (do wewnątrz). Co to za błąd?', options: ['Wyślizg', 'Ześlizg', 'Prawidłowy zakręt'], answer: 1, hint: 'Pamiętaj o zasadzie "kopania kulki".', feedback: 'To ześlizg. Należy "kopnąć kulkę", czyli wcisnąć przeciwny (prawy) pedał steru kierunku lub zwiększyć przechylenie.' },
+                { q: 'Jaki manewr należy wykonać natychmiast po zerwaniu liny wyciągarki na wysokości 20 metrów?', options: ['Wykonać zakręt o 180 stopni', 'Oddać drążek od siebie i lądować na wprost', 'Próbować zawisnąć w powietrzu'], answer: 1, hint: 'Na tej wysokości najważniejsze jest utrzymanie prędkości.', feedback: 'Na małej wysokości nie ma miejsca na manewry. Priorytetem jest natychmiastowe oddanie drążka, aby zapobiec przeciągnięciu, i lądowanie na kierunku startu.' }
+            ]
+        },
+        budowa: {
+            title: "Budowa Szybowców",
+            flashcards: [
+                { q: "Jaką funkcję pełni dźwigar w skrzydle?", a: "Przenosi siły zginające." },
+                { q: "Do czego służą hamulce aerodynamiczne?", a: "Do zwiększenia oporu i kąta zniżania." },
+                { q: "Co to jest keson w konstrukcji skrzydła?", a: "Przednia, sztywna część skrzydła przenosząca siły skręcające." }
+            ],
+            test: [
+                { q: 'Szybowiec szkolny IS-3, używany do podstawowej nauki, nosił nazwę:', options: ['Jaskółka', 'Bocian', 'ABC'], answer: 2, hint: 'Nazwa nawiązuje do podstaw nauki.', feedback: 'IS-3 "ABC" był podstawowym szybowcem szkolnym, charakteryzującym się kratownicowym kadłubem i dużą statecznością.' },
+                { q: 'Do czego w konstrukcji szybowca używano drewna jesionowego?', options: ['Na pokrycie skrzydeł', 'Na wręgi kadłuba', 'Na płozy podwozia'], answer: 2, hint: 'Ten element musi być twardy i sprężysty.', feedback: 'Jesion jest twardy i sprężysty, dlatego idealnie nadawał się na płozy, które musiały wytrzymywać uderzenia przy lądowaniu.' }
+            ]
+        },
+        przyrzady: {
+            title: "Przyrządy Pokładowe",
+            flashcards: [
+                { q: "Jaki przyrząd wskazuje prędkość wznoszenia/opadania?", a: "Wariometr." },
+                { q: "Jak działa wysokościomierz?", a: "Na zasadzie pomiaru ciśnienia statycznego." },
+                { q: "Co wskazuje prędkościomierz?", a: "Prędkość względem otaczającego powietrza (IAS)." }
+            ],
+            test: [
+                { q: 'Jaki przyrząd działa na zasadzie pomiaru różnicy ciśnień?', options: ['Wysokościomierz', 'Wariometr', 'Prędkościomierz'], answer: 2, hint: 'Jego działanie opiera się na rurce Pitota.', feedback: 'Prędkościomierz mierzy różnicę między ciśnieniem całkowitym a statycznym, co przekłada się na prędkość.' },
+                { q: 'Patrzysz na wariometr, a jego wskazówka idzie w górę. Co to oznacza?', options: ['Zwiększasz prędkość', 'Znalazłeś się w prądzie wznoszącym (noszeniu)', 'Tracisz wysokość'], answer: 1, hint: 'To najlepsza wiadomość dla szybownika.', feedback: 'Dodatnie wskazanie wariometru to dla szybownika najlepsza wiadomość - oznacza, że znalazł się w noszeniu i nabiera wysokości.' }
+            ]
+        },
+        urzadzenia_startowe: {
+            title: "Urządzenia Startowe",
+            flashcards: [
+                { q: "Jak nazywa się urządzenie z silnikiem, które nawija linę podczas startu?", a: "Wyciągarka." },
+                { q: "Jaką funkcję pełni układacz linki w wyciągarce?", a: "Równomiernie układa linę na bębnie." },
+                { q: "Do czego służy ściągarka?", a: "Do przyciągnięcia liny wyciągarkowej z powrotem na start." }
+            ],
+            test: [
+                { q: 'Jaki sygnał na starcie oznacza "można ciągnąć"?', options: ['Czerwona tarcza', 'Biała tarcza', 'Tarcza obracana wkoło'], answer: 1, hint: 'Kolor biały zazwyczaj oznacza zgodę.', feedback: 'Biała tarcza pokazana w kierunku wyciągarki jest sygnałem do rozpoczęcia nawijania liny i startu szybowca.' },
+                { q: 'Do czego służy mały spadochronik na końcu liny wyciągarkowej?', options: ['Do sygnalizacji dla pilota', 'Do zmniejszenia prędkości opadania liny po wyczepieniu', 'Do stabilizacji liny w locie'], answer: 1, hint: 'Zapobiega on gwałtownemu uderzeniu liny o ziemię.', feedback: 'Spadochronik wyhamowuje opadającą linę, co ułatwia pracę mechanikowi wyciągarki i zmniejsza ryzyko splątania.' }
+            ]
+        },
+        chmury: {
+            title: "Chmury",
+            flashcards: [
+                { q: "Jakie chmury dają najlepsze warunki do lotów termicznych?", a: "Cumulus (kłębiaste)." },
+                { q: "Jakie chmury zapowiadają nadejście frontu ciepłego?", a: "Cirrus (pierzaste, wysokie)." },
+                { q: "Z jakiej chmury mogą powstać gwałtowne burze?", a: "Z rozbudowanej chmury Cumulonimbus (Cb)." }
+            ],
+            test: [
+                { q: 'Lecisz pod chmurą o ciemnej, płaskiej podstawie i wyraźnie kłębiastej strukturze. To najprawdopodobniej:', options: ['Stratus', 'Cumulus', 'Cirrus'], answer: 1, hint: 'To ulubione chmury szybowników.', feedback: 'To klasyczny opis chmury Cumulus, która jest "silnikiem" dla szybowników.' },
+                { q: 'Z czego składają się chmury piętra wysokiego, takie jak Cirrus?', options: ['Z kropelek przechłodzonej wody', 'Z pyłu wulkanicznego', 'Z kryształków lodu'], answer: 2, hint: 'Na tych wysokościach jest bardzo zimno.', feedback: 'Na dużych wysokościach (powyżej 6000 m) temperatura jest tak niska, że chmury składają się wyłącznie z kryształków lodu.' }
+            ]
+        },
+        zjawiska: {
+            title: "Zjawiska Meteorologiczne",
+            flashcards: [
+                { q: "Czym jest równowaga chwiejna atmosfery?", a: "Stan, w którym powietrze ogrzane przy ziemi, wznosząc się, pozostaje cieplejsze (lżejsze) od otoczenia, co jest warunkiem termiki." },
+                { q: "Jak nazywa się prąd wznoszący powstały nad nasłonecznionym zboczem góry?", a: "Prąd zboczowy (żagiel)." },
+                { q: "Czym jest inwersja temperatury?", a: "Zjawiskiem, w którym temperatura rośnie z wysokością, hamując termikę." }
+            ],
+            test: [
+                { q: 'Powietrze wznosząc się, ochładza się adiabatycznie o około:', options: ['0.1°C na 100m', '1.0°C na 100m', '5.0°C na 100m'], answer: 1, hint: 'To podstawowa wartość w meteorologii lotniczej.', feedback: 'Suchoadibatyczny spadek temperatury wynosi 1°C na 100m. Jest to kluczowe dla powstawania termiki.' },
+                { q: 'Jak nazywa się zjawisko wznoszenia powietrza po dowietrznej stronie gór, wykorzystywane do lotów żaglowych?', options: ['Fala rotorowa', 'Lot zboczowy', 'Konwergencja'], answer: 1, hint: 'Nazwa nawiązuje do żeglowania.', feedback: 'Lot zboczowy polega na wykorzystaniu wiatru, który napotykając przeszkodę (górę), jest zmuszony do wznoszenia się.' }
+            ]
+        },
+        fronty: {
+            title: "Fronty Atmosferyczne",
+            flashcards: [
+                { q: "Jaki front charakteryzuje się gwałtownymi zjawiskami?", a: "Front chłodny." },
+                { q: "Jaki front przynosi długotrwałe, jednostajne opady?", a: "Front ciepły." },
+                { q: "Co to jest okluzja?", a: "Zjawisko nałożenia się frontu chłodnego na ciepły." }
+            ],
+            test: [
+                { q: 'Po przejściu jakiego frontu następuje zazwyczaj poprawa widzialności i napływ chłodniejszego, rześkiego powietrza?', options: ['Frontu ciepłego', 'Frontu chłodnego', 'Frontu zokludowanego'], answer: 1, hint: 'Który front "sprząta" atmosferę?', feedback: 'Front chłodny "wymiata" zanieczyszczenia, a za nim napływa czystsza masa powietrza polarnego.' },
+                { q: 'Jaka jest typowa sekwencja chmur zapowiadająca nadejście frontu ciepłego?', options: ['Cumulus -> Cumulonimbus', 'Stratus -> Nimbostratus', 'Cirrus -> Cirrostratus -> Altostratus -> Nimbostratus'], answer: 2, hint: 'Zaczyna się od najwyższego piętra chmur.', feedback: 'Obserwacja stopniowo gęstniejących i obniżających się chmur, od wysokich Cirrusów po deszczowe Nimbostratusy, to klasyczny zwiastun nadchodzącego frontu ciepłego.' }
+            ]
+        },
+        scenarios: {
+            thermal: {
+                title: 'Scenariusz: Przelot Termiczny',
+                stages: [
+                    {
+                        description: `<strong>Etap 1: Odprawa przedlotowa</strong><br>
+                        <strong>Zadanie:</strong> Krótki przelot termiczny.<br>
+                        <strong>Pogoda:</strong> Wiatr umiarkowany z zachodu (270/08KT), widzialność dobra, chmury kłębiaste (Cumulus) rozproszone na wysokości ok. 1200m.<br><br>
+                        <strong>Twoja decyzja:</strong> Jak oceniasz te warunki?`,
+                        options: [
+                            { text: 'Warunki idealne, lecę bez obaw.', nextStage: 1, feedback: 'Ocena poprawna, ale w lotnictwie nigdy nie ma miejsca na brak obaw. Zawsze należy być czujnym.' },
+                            { text: 'Warunki dobre, ale będę obserwować rozwój chmur.', nextStage: 1, feedback: 'Doskonała ocena! To prawidłowe podejście. Chmury Cumulus mogą się rozbudować.' },
+                            { text: 'Rezygnuję z lotu, jest zbyt wietrznie.', nextStage: 'end', feedback: 'Wiatr 8 węzłów jest w pełni akceptowalny. To dobra okazja do treningu.' }
+                        ]
+                    },
+                    {
+                        description: `<strong>Etap 2: Sytuacja w locie</strong><br>
+                        Jesteś 30 km od lotniska. Zauważasz, że chmury na zachodzie (skąd wieje wiatr) gwałtownie się rozbudowują pionowo, tworząc "kalafiory".<br><br>
+                        <strong>Twoja decyzja:</strong> Co robisz?`,
+                        options: [
+                            { text: 'Kontynuuję lot, to oznacza silniejszą termikę.', nextStage: 'end', feedback: 'Błędna i niebezpieczna decyzja. Gwałtowna rozbudowa Cumulusów to znak tworzenia się chmury burzowej (Cb), której należy unikać za wszelką cenę.' },
+                            { text: 'Natychmiast zawracam w kierunku lotniska.', nextStage: 'end', feedback: 'Bardzo dobra decyzja. Priorytetem jest unikanie niebezpiecznych zjawisk pogodowych i bezpieczny powrót.' },
+                            { text: 'Szukam w pobliżu pola do lądowania w terenie przygodnym.', nextStage: 'end', feedback: 'To również dobra, bezpieczna decyzja, zwłaszcza jeśli powrót na lotnisko byłby ryzykowny.' }
+                        ]
+                    }
+                ]
+            },
+            rope_break: {
+                title: 'Scenariusz: Zerwanie liny',
+                 stages: [
+                    {
+                        description: `<strong>Etap 1: Start</strong><br>
+                        Rozpoczynasz start za wyciągarką. Szybowiec odrywa się od ziemi i wznosi się na wysokość około 30 metrów. Nagle słyszysz głośny trzask, a nos szybowca gwałtownie opada.<br><br>
+                        <strong>Twoja decyzja:</strong> Jaka jest Twoja natychmiastowa, odruchowa reakcja?`,
+                        options: [
+                            { text: 'Ściągam drążek na siebie, aby nie stracić wysokości.', nextStage: 'end', feedback: 'Błędna reakcja. Ściągnięcie drążka spowoduje przeciągnięcie i utratę sterowności, co na tej wysokości jest katastrofalne.' },
+                            { text: 'Oddaję drążek od siebie, aby nabrać prędkości.', nextStage: 1, feedback: 'Doskonały odruch! Priorytetem jest utrzymanie prędkości postępowej, aby nie dopuścić do przeciągnięcia.' },
+                            { text: 'Wychylam lotki, aby ustabilizować szybowiec.', nextStage: 'end', feedback: 'Lotki nie rozwiążą problemu utraty ciągu i prędkości. Najważniejsza jest kontrola podłużna.' }
+                        ]
+                    },
+                    {
+                        description: `<strong>Etap 2: Plan działania</strong><br>
+                        Udało Ci się opanować szybowiec i masz stabilną prędkość ok. 80 km/h. Jesteś na wysokości 25 metrów nad końcem pasa startowego.<br><br>
+                        <strong>Twoja decyzja:</strong> Co robisz dalej?`,
+                        options: [
+                            { text: 'Próbuję wykonać ciasny zakręt o 180 stopni, aby lądować pod wiatr.', nextStage: 'end', feedback: 'Bardzo niebezpieczna decyzja. Na tej wysokości zakręt, zwłaszcza z wiatrem w plecy, prawie na pewno skończy się przeciągnięciem i korkociągiem.' },
+                            { text: 'Ląduję na wprost, w terenie przed sobą, nawet jeśli jest nierówny.', nextStage: 'end', feedback: 'Najbezpieczniejsza i jedyna prawidłowa decyzja. Lądowanie na wprost w kontrolowany sposób jest zawsze lepsze niż ryzykowne manewry na małej wysokości.' },
+                            { text: 'Próbuję "zawrócić" na lotnisko płaskim ślizgiem.', nextStage: 'end', feedback: 'Płaski ślizg na tej wysokości jest niemożliwy do wykonania bezpiecznie i również grozi utratą prędkości.' }
+                        ]
+                    }
+                ]
+            }
+        }
+    };
+
+    // --- UI RENDERING & LOGIC ---
+    function renderDashboard() {
+        const completedSubtests = Object.keys(userProgress.subtestStatus).filter(key => userProgress.subtestStatus[key]).length;
+        const totalSubtests = Object.values(userProgress.modules).reduce((acc, mod) => acc + mod.subtests.length, 0);
+        const totalPercentage = totalSubtests > 0 ? Math.round((completedSubtests / totalSubtests) * 100) : 0;
+        
+        document.getElementById('progress-bar-inner').style.width = `${totalPercentage}%`;
+        document.getElementById('progress-bar-inner').textContent = `${totalPercentage}%`;
+        
+        const aiInstructor = document.getElementById('ai-instructor');
+        if (totalPercentage === 0) {
+            aiInstructor.innerHTML = `<h3>POWIADOMIENIE OD INSTRUKTORA AI</h3><p>Witaj w szkole pilotażu! Wybierz dowolny moduł z Akademii Wiedzy, aby rozpocząć naukę.</p>`;
+        } else if (totalPercentage < 100) {
+            aiInstructor.innerHTML = `<h3>POWIADOMIENIE OD INSTRUKTORA AI</h3><p>Dobra robota! Ukończyłeś już ${totalPercentage}% materiału. Kontynuuj naukę lub sprawdź się w Symulatorze.</p>`;
+        } else {
+             aiInstructor.innerHTML = `<h3>POWIADOMIENIE OD INSTRUKTORA AI</h3><p>Gratulacje! Ukończyłeś całą Akademię Wiedzy. Jesteś gotowy na zaawansowane scenariusze w Symulatorze Decyzyjnym!</p>`;
+        }
+
+        const modulesSection = document.getElementById('main-modules-section');
+        modulesSection.innerHTML = `
+            <button id="library-button" class="button" onclick="showLibrary()">NAUKA - KOMPENDIUM WIEDZY</button>
+            <h2>GŁÓWNE MODUŁY SZKOLENIOWE</h2>
+            <h3>1. AKADEMIA WIEDZY (Testy)</h3>
+            ${Object.values(userProgress.modules).map(mod => createModuleHTML(mod)).join('')}
+            <h3>2. SYMULATOR DECYZYJNY</h3>
+            <div class="module">
+                <div class="module-header">
+                    <span>Scenariusze Praktyczne</span>
+                    <button class="button-secondary" onclick="showScenarioSelection()">START</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function createModuleHTML(moduleData) {
+        const isModuleCompleted = moduleData.subtests.every(st => userProgress.subtestStatus[st]);
+        let statusHTML = isModuleCompleted ? `<span class="module-status status-done">✅ UKOŃCZONO</span>` : ``;
+        let moduleClass = isModuleCompleted ? 'module completed' : 'module unlocked';
+
+        const subtestsHTML = moduleData.subtests.map(stKey => {
+            const isDone = userProgress.subtestStatus[stKey];
+            const statusIcon = isDone ? '✅' : '⏳';
+            return `<div class="sub-test">${statusIcon} <span class="sub-test-link" onclick="startSubtest('${stKey}')">${contentDB[stKey]?.title || stKey}</span></div>`;
+        }).join('');
+
+        return `<div class="${moduleClass}">
+                    <div class="module-header">
+                        <h4>${moduleData.name}</h4>
+                        ${statusHTML}
+                    </div>
+                    <div class="sub-test-list">${subtestsHTML}</div>
+                </div>`;
+    }
+
+    function startSubtest(subtestId) {
+        showLearnPhase(subtestId);
+    }
+    
+    function showLearnPhase(subtestId) {
+        const content = contentDB[subtestId];
+        if (!content) return;
+
+        const modal = document.getElementById('main-modal');
+        document.getElementById('modal-title').textContent = `Faza Nauki: ${content.title}`;
+        const flashcardsHTML = content.flashcards.map(fc => `
+            <div class="flashcard" onclick="this.classList.toggle('is-flipped')">
+                <div class="flashcard-inner">
+                    <div class="flashcard-front">${fc.q}</div>
+                    <div class="flashcard-back">${fc.a}</div>
+                </div>
+            </div>
+        `).join('');
+
+        document.getElementById('modal-body').innerHTML = `
+            <p>Zapoznaj się z kluczowymi zagadnieniami. Kliknij na fiszkę, aby zobaczyć odpowiedź.</p>
+            <div class="flashcard-container">${flashcardsHTML}</div><br>
+            <button class="button" style="display: block; margin: 20px auto 0;" onclick="startTestPhase('${subtestId}')">Rozpocznij Test</button>
+        `;
+        document.getElementById('modal-feedback').style.display = 'none';
+        modal.style.display = 'block';
+    }
+
+    function startTestPhase(subtestId) {
+        const content = contentDB[subtestId];
+        currentTestState = {
+            subtestId: subtestId,
+            questions: [...content.test].sort(() => 0.5 - Math.random()), // Shuffle questions
+            currentQuestionIndex: 0
+        };
+        showNextQuestion();
+    }
+
+    function showNextQuestion() {
+        const { subtestId, questions, currentQuestionIndex } = currentTestState;
+        if (currentQuestionIndex >= questions.length) {
+            completeSubtest(subtestId);
+            triggerSigmaAnimation();
+            setTimeout(() => { closeModal(); renderDashboard(); }, 4000);
+            return;
+        }
+
+        const test = questions[currentQuestionIndex];
+        document.getElementById('modal-title').textContent = `Test: ${contentDB[subtestId].title} (Pytanie ${currentQuestionIndex + 1}/${questions.length})`;
+        const optionsHTML = test.options.map((opt, index) => 
+            `<div class="option" onclick="checkAnswer(this, ${index === test.answer}, '${test.feedback.replace(/'/g, "\\'")}', '${test.hint.replace(/'/g, "\\'")}')">${opt}</div>`
+        ).join('');
+
+        document.getElementById('modal-body').innerHTML = `<p>${test.q}</p><div class="modal-options">${optionsHTML}</div>`;
+        document.getElementById('modal-feedback').style.display = 'none';
+    }
+    
+    function showScenarioSelection() {
+        const modal = document.getElementById('main-modal');
+        document.getElementById('modal-title').textContent = 'Wybierz Scenariusz';
+        
+        let scenariosHTML = '';
+        for (const scenarioId in contentDB.scenarios) {
+            const scenario = contentDB.scenarios[scenarioId];
+            scenariosHTML += `<div class="option" onclick="showScenario('${scenarioId}')">${scenario.title}</div>`;
+        }
+        
+        document.getElementById('modal-body').innerHTML = `<div class="modal-options">${scenariosHTML}</div>`;
+        document.getElementById('modal-feedback').style.display = 'none';
+        modal.style.display = 'block';
+    }
+
+    function showScenario(scenarioId) {
+        const scenario = contentDB.scenarios[scenarioId];
+        if (!scenario) return;
+        renderScenarioStage(scenario, 0);
+    }
+
+    function renderScenarioStage(scenario, stageIndex) {
+        if (stageIndex === 'end') {
+            closeModal();
+            alert("Scenariusz zakończony!");
+            return;
+        }
+        const stage = scenario.stages[stageIndex];
+        const modal = document.getElementById('main-modal');
+        document.getElementById('modal-title').textContent = `${scenario.title} - Etap ${stageIndex + 1}`;
+        
+        const optionsHTML = stage.options.map(opt => 
+            `<div class="option" onclick="handleScenarioChoice(this, '${scenario.title}', ${JSON.stringify(opt).replace(/"/g, '&quot;')})">${opt.text}</div>`
+        ).join('');
+
+        document.getElementById('modal-body').innerHTML = `<p>${stage.description}</p><div class="modal-options">${optionsHTML}</div>`;
+        document.getElementById('modal-feedback').style.display = 'none';
+        modal.style.display = 'block';
+    }
+
+    function handleScenarioChoice(element, scenarioTitle, option) {
+        const options = element.parentElement.children;
+        for (let opt of options) { opt.onclick = null; opt.style.cursor = 'default'; }
+        
+        const modalFeedback = document.getElementById('modal-feedback');
+        modalFeedback.innerHTML = `<strong>Reakcja:</strong> ${option.feedback}`;
+        modalFeedback.className = 'feedback-correct';
+        element.style.borderColor = 'var(--accent-blue)';
+        element.style.backgroundColor = '#e2e8f0';
+        modalFeedback.style.display = 'block';
+
+        const scenario = Object.values(contentDB.scenarios).find(s => s.title === scenarioTitle);
+        setTimeout(() => {
+            renderScenarioStage(scenario, option.nextStage);
+        }, 3000);
+    }
+
+    function triggerSigmaAnimation() {
+        const plane = document.getElementById('plane-animation');
+        plane.classList.remove('fly');
+        void plane.offsetWidth; 
+        plane.classList.add('fly');
+    }
+
+    function checkAnswer(element, isCorrect, feedbackText, hintText) {
+        const options = element.parentElement.children;
+        for (let opt of options) { opt.onclick = null; opt.style.cursor = 'default'; }
+
+        const modalFeedback = document.getElementById('modal-feedback');
+        
+        if (isCorrect) {
+            modalFeedback.innerHTML = `<strong>Uzasadnienie:</strong> ${feedbackText}`;
+            modalFeedback.className = 'feedback-correct';
+            element.style.borderColor = 'var(--accent-green)';
+            element.style.backgroundColor = '#f0fff4';
+            currentTestState.currentQuestionIndex++;
+            setTimeout(showNextQuestion, 2000);
+        } else {
+            modalFeedback.innerHTML = `<strong>Niestety, to nie jest poprawna odpowiedź.</strong><br><em>Wskazówka: ${hintText}</em><br><br>
+            <button class="button" onclick="showNextQuestion()">Spróbuj inne pytanie</button>
+            <button class="button-secondary" onclick="closeModal()">Wróć do menu</button>`;
+            modalFeedback.className = 'feedback-incorrect';
+            element.style.borderColor = 'var(--accent-red)';
+            element.style.backgroundColor = '#fff5f5';
+        }
+        modalFeedback.style.display = 'block';
+    }
+    
+    function completeSubtest(subtestId) {
+        userProgress.subtestStatus[subtestId] = true;
+    }
+
+    function showLibrary() {
+        const modal = document.getElementById('main-modal');
+        document.getElementById('modal-title').textContent = 'Kompendium Wiedzy';
+        let libraryHTML = '';
+
+        for (const module of Object.values(userProgress.modules)) {
+            libraryHTML += `<div class="library-section"><h3>${module.name}</h3>`;
+            for (const subtestId of module.subtests) {
+                const content = contentDB[subtestId];
+                if (content) {
+                    libraryHTML += `<h4>${content.title}</h4><dl>`;
+                    content.flashcards.forEach(fc => {
+                        libraryHTML += `<div class="library-item"><dt>${fc.q}</dt><dd>${fc.a}</dd></div>`;
+                    });
+                    libraryHTML += `</dl>`;
+                }
+            }
+            libraryHTML += `</div>`;
+        }
+
+        document.getElementById('modal-body').innerHTML = libraryHTML;
+        document.getElementById('modal-feedback').style.display = 'none';
+        modal.style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('main-modal').style.display = 'none';
+        document.getElementById('modal-body').innerHTML = '';
+        document.getElementById('modal-feedback').style.display = 'none';
+    }
+
+    // Make functions globally accessible for inline HTML onclick handlers
+    window.closeModal = closeModal;
+    window.startSubtest = startSubtest;
+    window.showLearnPhase = showLearnPhase;
+    window.startTestPhase = startTestPhase;
+    window.checkAnswer = checkAnswer;
+    window.showLibrary = showLibrary;
+    window.showScenario = showScenario;
+    window.handleScenarioChoice = handleScenarioChoice;
+    window.showScenarioSelection = showScenarioSelection;
+    window.showNextQuestion = showNextQuestion;
+
+    document.addEventListener('DOMContentLoaded', renderDashboard);
+</script>
+
+</body>
+</html>
